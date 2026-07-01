@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Build Budget Calculator — Aloha AI Consulting</title>
+<style>
+  :root {
+    --teal: #1B7A68;
+    --teal-dark: #145c4f;
+    --teal-light: #e8f5f2;
+    --teal-mid: #b3ddd6;
+    --gold: #B8842A;
+    --bg: #F6F3EC;
+    --white: #ffffff;
+    --text: #1C1B1F;
+    --muted: #6b6b6b;
+    --border: rgba(0,0,0,0.12);
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Manrope', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; }
+  a { color: var(--teal); }
+
+  /* HEADER */
+  .header { background: var(--teal); color: white; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
+  .header-brand { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.8; }
+  .header-title { font-size: 18px; font-weight: 600; }
+  .header-totals { display: flex; gap: 20px; }
+  .total-pill { background: rgba(255,255,255,0.15); border-radius: 8px; padding: 8px 16px; text-align: center; min-width: 110px; }
+  .total-pill .label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; }
+  .total-pill .value { font-size: 18px; font-weight: 600; }
+
+  /* CONTAINER */
+  .container { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  /* SETTINGS BAR */
+  .settings-bar { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .setting { display: flex; flex-direction: column; gap: 4px; }
+  .setting label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .setting input { border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; font-size: 14px; background: var(--white); width: 120px; color: var(--text); }
+  .setting input:focus { outline: 2px solid var(--teal); border-color: transparent; }
+
+  /* SECTION HEADER */
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .section-title { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--teal-dark); }
+  .section-sub { font-size: 12px; color: var(--muted); margin-left: 8px; font-weight: 400; }
+
+  /* TABLE */
+  .table-wrap { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px; }
+  .col-heads { display: grid; grid-template-columns: 1fr 90px 90px 110px 24px; gap: 0; background: var(--teal); }
+  .col-heads span { padding: 8px 10px; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.85); }
+  .col-heads span:not(:first-child) { text-align: right; }
+
+  .phase-row { display: grid; grid-template-columns: 1fr 90px 90px 110px 24px; gap: 0; border-bottom: 1px solid var(--border); align-items: center; }
+  .phase-row:last-child { border-bottom: none; }
+  .phase-row:nth-child(even) { background: #fafaf8; }
+  .phase-row input[type=text] { border: none; background: transparent; font-size: 13px; padding: 8px 10px; width: 100%; color: var(--text); }
+  .phase-row input[type=number] { border: none; background: transparent; font-size: 13px; padding: 8px 10px; text-align: right; width: 100%; color: #1B7A68; font-weight: 500; }
+  .phase-row input:focus { outline: 2px solid var(--teal); border-radius: 3px; }
+  .fee-cell { padding: 8px 10px; font-size: 13px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .del-btn { border: none; background: transparent; color: #ccc; cursor: pointer; font-size: 16px; padding: 0 6px; transition: color 0.15s; text-align: center; }
+  .del-btn:hover { color: #e05555; }
+
+  .table-footer { display: grid; grid-template-columns: 1fr 90px 90px 110px 24px; background: var(--teal-light); border-top: 2px solid var(--teal-mid); }
+  .table-footer span { padding: 9px 10px; font-size: 13px; font-weight: 700; }
+  .table-footer span:nth-child(n+2) { text-align: right; }
+  .table-footer .total-fee { color: var(--teal-dark); }
+
+  .add-phase-btn { display: inline-flex; align-items: center; gap: 6px; border: 1.5px dashed var(--teal-mid); background: transparent; color: var(--teal); font-size: 13px; font-weight: 500; padding: 8px 14px; border-radius: 7px; cursor: pointer; transition: all 0.15s; margin-bottom: 28px; }
+  .add-phase-btn:hover { background: var(--teal-light); border-color: var(--teal); }
+
+  /* GET ROW */
+  .get-row { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .get-row .get-label { font-size: 13px; color: var(--muted); }
+  .get-row .get-label strong { color: var(--text); font-weight: 600; }
+  .get-row .get-amount { font-size: 15px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+
+  /* PS TOTAL */
+  .ps-total-bar { background: var(--teal); color: white; border-radius: var(--radius); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 36px; }
+  .ps-total-bar .label { font-size: 13px; font-weight: 600; opacity: 0.9; }
+  .ps-total-bar .label small { font-size: 11px; font-weight: 400; opacity: 0.7; display: block; }
+  .ps-total-bar .amount { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* LOCKED SECTIONS */
+  .locked-section { position: relative; margin-bottom: 24px; }
+  .locked-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(246,243,236,0.4) 0%, rgba(246,243,236,0.92) 50%); border-radius: var(--radius); z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+  .locked-badge { background: var(--gold); color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; }
+  .locked-text { font-size: 13px; color: var(--muted); text-align: center; max-width: 320px; }
+  .locked-cta { background: var(--teal); color: white; border: none; padding: 10px 22px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; text-decoration: none; display: inline-block; }
+  .locked-cta:hover { background: var(--teal-dark); color: white; }
+  .locked-preview { filter: blur(3px) brightness(0.97); pointer-events: none; user-select: none; }
+  .locked-preview .col-heads { opacity: 0.6; }
+
+  /* LEAD FORM */
+  .lead-section { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 28px; margin-top: 20px; }
+  .lead-section h2 { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--teal-dark); }
+  .lead-section p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  .form-field { display: flex; flex-direction: column; gap: 5px; }
+  .form-field label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .form-field input, .form-field select { border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; font-size: 14px; background: var(--bg); color: var(--text); }
+  .form-field input:focus, .form-field select:focus { outline: 2px solid var(--teal); border-color: transparent; }
+  .form-field.full { grid-column: 1 / -1; }
+  .submit-btn { width: 100%; background: var(--teal); color: white; border: none; padding: 13px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .submit-btn:hover { background: var(--teal-dark); }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .form-success { display: none; text-align: center; padding: 20px; color: var(--teal-dark); }
+  .form-success .check { font-size: 32px; margin-bottom: 8px; }
+  .form-success h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .form-success p { font-size: 13px; color: var(--muted); }
+
+  /* FOOTER */
+  .footer { text-align: center; padding: 16px; font-size: 12px; color: var(--muted); }
+  .footer a { color: var(--teal); text-decoration: none; }
+
+  @media (max-width: 600px) {
+    .header { padding: 14px 16px; }
+    .header-totals { gap: 10px; }
+    .total-pill { min-width: 90px; padding: 6px 12px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .settings-bar { gap: 12px; }
+    .col-heads, .phase-row, .table-footer { grid-template-columns: 1fr 72px 72px 90px 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <span class="header-brand">Aloha AI Consulting</span>
+    <span class="header-title">AI Build Budget Calculator</span>
+  </div>
+  <div class="header-totals">
+    <div class="total-pill">
+      <div class="label">PS Low</div>
+      <div class="value" id="hdr-lo">$0</div>
+    </div>
+    <div class="total-pill">
+      <div class="label">PS High</div>
+      <div class="value" id="hdr-hi">$0</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="settings-bar">
+    <div class="setting">
+      <label>Rate / hour ($)</label>
+      <input type="number" id="rate" value="150" min="1" step="5">
+    </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+    <span style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);">Presets:</span>
+    <button onclick="loadPreset('eolpc')" style="padding:5px 10px;border:1px solid var(--teal-mid);background:var(--teal-light);color:var(--teal);font-size:11px;font-weight:600;border-radius:6px;cursor:pointer;">EOLPC</button>
+    <button onclick="loadPreset('legal')" style="padding:5px 10px;border:1px solid #b3c6d8;background:#eef3f8;color:#1E3651;font-size:11px;font-weight:600;border-radius:6px;cursor:pointer;">Legal AI</button>
+    <button onclick="loadPreset('startup')" style="padding:5px 10px;border:1px solid #c5c3e4;background:#eeedf8;color:#4D45A8;font-size:11px;font-weight:600;border-radius:6px;cursor:pointer;">Startup</button>
+    <button onclick="loadPreset('healthcare')" style="padding:5px 10px;border:1px solid var(--teal-mid);background:var(--teal-light);color:var(--teal-dark);font-size:11px;font-weight:600;border-radius:6px;cursor:pointer;">Healthcare</button>
+    <label style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;margin-left:8px;">
+      <input type="checkbox" id="se-visible" onchange="document.getElementById('se-row').style.display=this.checked?'flex':'none';recalc();">
+      SE tax
+    </label>
+    <button onclick="exportCSV()" style="margin-left:auto;padding:5px 10px;border:1px solid var(--teal-mid);background:var(--teal-light);color:var(--teal);font-size:11px;font-weight:600;border-radius:6px;cursor:pointer;">↓ CSV</button>
+  </div>
+    <div class="setting">
+      <label>GET / tax rate (%)</label>
+      <input type="number" id="get-rate" value="4.5" min="0" step="0.1">
+    </div>
+    <div class="setting">
+      <label>Project name (optional)</label>
+      <input type="text" id="proj-name" placeholder="My AI Project" style="width:200px">
+    </div>
+  </div>
+
+  <div class="section-head">
+    <div><span class="section-title">Professional Services</span><span class="section-sub">Edit phase names, hours low, and hours high</span></div>
+  </div>
+
+<div style="background:#f0faf8;border:1px solid #b8d8d2;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:12px;color:#2c5f58;line-height:1.8">
+  <strong>① Set your rate</strong> using the settings above. &nbsp;&nbsp;
+  <strong>② Click any phase name</strong> to rename it. &nbsp;&nbsp;
+  <strong>③ Edit hours</strong> in the low/high columns. &nbsp;&nbsp;
+  <strong>④ × to delete</strong> a row — <em>Undo delete</em> restores it. &nbsp;&nbsp;
+  <strong>⑤ + Add phase</strong> to add rows. &nbsp;&nbsp;
+  <strong>⑥ Export CSV</strong> when done.
+</div>
+  <div class="table-wrap">
+    <div class="col-heads">
+      <span>Phase</span>
+      <span>Hrs low</span>
+      <span>Hrs high</span>
+      <span>Fee range</span>
+      <span></span>
+    </div>
+    <div id="phases"></div>
+    <div class="table-footer" id="ps-footer">
+      <span>Total professional services</span>
+      <span id="tot-lo-hrs">0</span>
+      <span id="tot-hi-hrs">0</span>
+      <span class="total-fee" id="tot-fee">$0 – $0</span>
+      <span></span>
+    </div>
+  </div>
+
+  <button class="add-phase-btn" onclick="addPhase()">+ Add phase</button>
+  <button onclick="undoDelPhase()" id="undo-btn" disabled style="margin-left:8px;padding:6px 14px;border:1px solid #d4cabc;border-radius:6px;background:#f5f0e8;color:#c4bbb2;font-size:12px;cursor:not-allowed;opacity:0.5;">↩ Undo delete</button>
+
+  <div class="get-row">
+    <span class="get-label"><strong id="get-label-text">GET (4.5%)</strong> on professional services — auto-calculated</span>
+    <span class="get-amount" id="get-display">$0 – $0</span>
+  </div>
+  <div class="get-row" id="se-row" style="display:none;">
+    <span class="get-label">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+        <input type="checkbox" id="se-toggle" onchange="recalc()" style="cursor:pointer;">
+        <strong>SE tax (14.13%)</strong> on PS — IRS self-employment formula
+      </label>
+    </span>
+    <span class="get-amount" id="se-display">$0 – $0</span>
+  </div>
+
+  <div class="ps-total-bar">
+    <div class="label">Total PS + tax<small id="ps-range-sub">Phases 0–10 at $150/hr</small></div>
+    <div class="amount" id="ps-plus-get">$0 – $0</div>
+  </div>
+
+  <!-- LOCKED PAID PREVIEW -->
+  <div class="section-head" style="margin-bottom:8px;">
+    <span class="section-title">Full tool includes</span>
+  </div>
+
+  <div class="locked-section">
+    <div class="locked-preview">
+      <div class="table-wrap" style="margin-bottom:12px;">
+        <div class="col-heads"><span>Build Materials</span><span>Low</span><span>High</span><span>Amount</span><span></span></div>
+        <div class="phase-row"><input type="text" value="LLM API (dev + testing)" readonly><input type="number" value="150" readonly><input type="number" value="400" readonly><div class="fee-cell">$150 – $400</div><div></div></div>
+        <div class="phase-row"><input type="text" value="Vector database (3 months)" readonly><input type="number" value="60" readonly><input type="number" value="150" readonly><div class="fee-cell">$60 – $150</div><div></div></div>
+        <div class="phase-row"><input type="text" value="Security audit (pre-launch)" readonly><input type="number" value="8000" readonly><input type="number" value="15000" readonly><div class="fee-cell">$8,000 – $15,000</div><div></div></div>
+      </div>
+      <div class="table-wrap" style="margin-bottom:12px;">
+        <div class="col-heads"><span>Year 1 Operational Costs</span><span>Low/mo</span><span>High/mo</span><span>Annual</span><span></span></div>
+        <div class="phase-row"><input type="text" value="LLM API inference" readonly><input type="number" value="75" readonly><input type="number" value="400" readonly><div class="fee-cell">$900 – $4,800</div><div></div></div>
+        <div class="phase-row"><input type="text" value="E&O insurance" readonly><input type="number" value="55" readonly><input type="number" value="76" readonly><div class="fee-cell">$662 – $907</div><div></div></div>
+      </div>
+    </div>
+    <div class="locked-overlay">
+      <span class="locked-badge">Paid version</span>
+      <span class="locked-text">Build materials (26 line items), Year 1 ops, mobile app options (PWA / React Native / Native), and complete ask summary — with the downloadable Google Sheet template and the practitioner's guide.</span>
+      <a href="https://gumroad.com" class="locked-cta" id="gumroad-link" target="_blank">Pre-order — $67 (launching at $97) →</a>
+    </div>
+  </div>
+
+  <!-- LEAD FORM -->
+  <div class="lead-section">
+    <h2>Get notified at launch + receive the free PS-only Google Sheet</h2>
+    <p>We'll send you the spreadsheet version of this calculator (professional services section) and notify you the moment the full tool goes live.</p>
+    <form id="lead-form">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>First name</label>
+          <input type="text" name="name" placeholder="Your name" required>
+        </div>
+        <div class="form-field">
+          <label>Email</label>
+          <input type="email" name="email" placeholder="you@domain.com" required>
+        </div>
+        <div class="form-field">
+          <label>Role</label>
+          <select name="role">
+            <option value="">Select...</option>
+            <option>AI consultant / developer</option>
+            <option>Founder / startup</option>
+            <option>Legal professional</option>
+            <option>Healthcare / nonprofit</option>
+            <option>Enterprise / corporate</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>What are you building?</label>
+          <input type="text" name="building" placeholder="e.g. RAG system for legal docs">
+        </div>
+      </div>
+      <button type="submit" class="submit-btn" id="submit-btn">Send me the sheet + notify me at launch</button>
+    </form>
+    <div class="form-success" id="form-success">
+      <div class="check">✓</div>
+      <h3>You're on the list.</h3>
+      <p>Check your email for the PS Google Sheet. We'll notify you the moment the full tool launches.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Built by <a href="https://rncollins.com/aloha-ai-consulting" target="_blank">RN Collins · Aloha AI Consulting</a> · Honolulu, HI
+</div>
+
+<script>
+const PHASES_DEFAULT = [
+  { name: "Phase 0 — Proof of concept", lo: 15, hi: 25 },
+  { name: "Phase 1 — Discovery, scoping, and requirements", lo: 15, hi: 25 },
+  { name: "Phase 2 — Data architecture and preparation", lo: 30, hi: 50 },
+  { name: "Phase 3 — Legal, compliance, and risk architecture", lo: 15, hi: 25 },
+  { name: "Phase 4 — Infrastructure, DevOps, and security baseline", lo: 20, hi: 35 },
+  { name: "Phase 5 — Core AI/ML build (embeddings, retrieval, prompts)", lo: 60, hi: 100 },
+  { name: "Phase 6 — Backend API and business logic", lo: 40, hi: 60 },
+  { name: "Phase 7 — Frontend / interface build", lo: 40, hi: 60 },
+  { name: "Phase 8 — Integration and data migration", lo: 20, hi: 35 },
+  { name: "Phase 9 — Testing, QA, and AI output evaluation", lo: 30, hi: 50 },
+  { name: "Phase 10 — Launch, deployment, and handoff", lo: 15, hi: 25 },
+];
+
+let phases = PHASES_DEFAULT.map(p => ({...p}));
+
+function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
+function fmtRange(lo, hi) { return fmt(lo) + ' – ' + fmt(hi); }
+
+function getRate() { return parseFloat(document.getElementById('rate').value) || 150; }
+function getGetRate() { return (parseFloat(document.getElementById('get-rate').value) || 0) / 100; }
+
+function renderPhases() {
+  const container = document.getElementById('phases');
+  const rate = getRate();
+  container.innerHTML = '';
+  phases.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'phase-row';
+    const feeLo = p.lo * rate, feeHi = p.hi * rate;
+    row.innerHTML = `
+      <input type="text" value="${p.name}" oninput="phases[${i}].name=this.value">
+      <input type="number" value="${p.lo}" min="0" oninput="phases[${i}].lo=+this.value||0;recalc()">
+      <input type="number" value="${p.hi}" min="0" oninput="phases[${i}].hi=+this.value||0;recalc()">
+      <div class="fee-cell">${fmtRange(feeLo, feeHi)}</div>
+      <button class="del-btn" onclick="delPhase(${i})" title="Remove phase">×</button>`;
+    container.appendChild(row);
+  });
+  recalc();
+}
+
+function recalc() {
+  const rate = getRate();
+  const getTaxRate = getGetRate();
+  const loHrs = phases.reduce((s, p) => s + (p.lo||0), 0);
+  const hiHrs = phases.reduce((s, p) => s + (p.hi||0), 0);
+  const psLo = loHrs * rate, psHi = hiHrs * rate;
+  const getLo = psLo * getTaxRate, getHi = psHi * getTaxRate;
+  const totalLo = psLo + getLo, totalHi = psHi + getHi;
+
+  document.getElementById('tot-lo-hrs').textContent = loHrs;
+  document.getElementById('tot-hi-hrs').textContent = hiHrs;
+  document.getElementById('tot-fee').textContent = fmtRange(psLo, psHi);
+  document.getElementById('get-label-text').textContent = `GET (${(getTaxRate*100).toFixed(1)}%)`;
+  document.getElementById('get-display').textContent = fmtRange(getLo, getHi);
+  document.getElementById('ps-plus-get').textContent = fmtRange(totalLo, totalHi);
+  document.getElementById('ps-range-sub').textContent = `${loHrs}–${hiHrs} hrs at $${rate}/hr`;
+  const seOn = document.getElementById('se-toggle')?.checked;
+  const seLo = seOn ? Math.round(psLo * 0.1413) : 0;
+  const seHi = seOn ? Math.round(psHi * 0.1413) : 0;
+  if(document.getElementById('se-display'))
+    document.getElementById('se-display').textContent = fmtRange(Math.round(psLo*0.1413), Math.round(psHi*0.1413));
+  document.getElementById('hdr-lo').textContent = fmt(totalLo + seLo);
+  document.getElementById('hdr-hi').textContent = fmt(totalHi + seHi);
+
+  // re-render fee cells without full re-render to avoid cursor loss
+  const rows = document.querySelectorAll('.phase-row');
+  rows.forEach((row, i) => {
+    const cell = row.querySelector('.fee-cell');
+    if (cell && phases[i]) cell.textContent = fmtRange(phases[i].lo*rate, phases[i].hi*rate);
+  });
+}
+
+function addPhase() {
+  phases.push({ name: `Phase ${phases.length} — New phase`, lo: 20, hi: 40 });
+  renderPhases();
+}
+
+let _deletedStack = [];
+
+function undoDelPhase() {
+  if (!_deletedStack.length) return;
+  const { phase, idx } = _deletedStack.pop();
+  phases.splice(idx, 0, phase);
+  if (!_deletedStack.length) {
+    const ub2 = document.getElementById('undo-btn');
+    ub2.disabled = true;
+    ub2.style.opacity = '0.5';
+    ub2.style.cursor = 'not-allowed';
+    ub2.style.color = '#c4bbb2';
+  }
+  renderPhases();
+  recalc();
+}
+
+function delPhase(i) {
+  if (phases.length <= 1) return;
+  _deletedStack.push({ phase: Object.assign({}, phases[i]), idx: i });
+  phases.splice(i, 1);
+  const ub=document.getElementById('undo-btn'); ub.disabled=false; ub.style.opacity='1'; ub.style.cursor='pointer'; ub.style.color='#6B6459';
+  renderPhases();
+  recalc();
+}
+
+document.getElementById('rate').addEventListener('input', recalc);
+document.getElementById('get-rate').addEventListener('input', recalc);
+
+// LEAD FORM
+document.getElementById('lead-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  const data = {
+    name: this.name.value,
+    email: this.email.value,
+    role: this.role.value,
+    building: this.building.value,
+    source: 'AI Build Budget Calculator — free version',
+    url: window.location.href,
+  };
+  try {
+    await fetch('/api/leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  } catch(err) {}
+  document.getElementById('lead-form').style.display = 'none';
+  document.getElementById('form-success').style.display = 'block';
+});
+
+
+const PRESETS = {
+  eolpc: {
+    name: 'EOLPC Knowledge Intelligence System',
+    rate: 150, getRate: 4.5,
+    phases: [
+      {name:'Phase 0 — Proof of concept (pre-grant)',lo:23,hi:25},
+      {name:'Phase 1 — Data preparation and corpus architecture',lo:30,hi:40},
+      {name:'Phase 2 — Legal disclaimer architecture',lo:20,hi:30},
+      {name:'Phase 3 — For-profit arm analysis',lo:20,hi:30},
+      {name:'Phase 4 — Core RAG build',lo:60,hi:80},
+      {name:'Phase 5 — Avatar / interface build',lo:40,hi:60},
+      {name:'Phase 6 — Testing, QA, and prompt refinement',lo:30,hi:40},
+    ]
+  },
+  legal: {
+    name: 'Legal AI Assistant',
+    rate: 150, getRate: 4.5,
+    phases: [
+      {name:'Phase 0 — Proof of concept',lo:15,hi:20},
+      {name:'Phase 1 — Data prep (contracts, case law, firm docs)',lo:25,hi:40},
+      {name:'Phase 2 — Legal compliance architecture',lo:20,hi:30},
+      {name:'Phase 3 — RAG pipeline build',lo:80,hi:120},
+      {name:'Phase 4 — Legal document processing pipeline',lo:30,hi:50},
+      {name:'Phase 5 — Interface build + citation display',lo:40,hi:60},
+      {name:'Phase 6 — Firm integrations (NetDocuments / iManage)',lo:30,hi:50},
+      {name:'Phase 7 — Security + attorney-client privilege review',lo:25,hi:40},
+      {name:'Phase 8 — Testing, QA, and legal accuracy evaluation',lo:30,hi:50},
+      {name:'Phase 9 — Launch + attorney onboarding',lo:20,hi:30},
+    ]
+  },
+  startup: {
+    name: 'Startup MVP Build',
+    rate: 125, getRate: 0,
+    phases: [
+      {name:'Phase 0 — Rapid proof of concept',lo:10,hi:15},
+      {name:'Phase 1 — Data prep + MVP scoping',lo:15,hi:25},
+      {name:'Phase 2 — Core AI/ML build (lean RAG)',lo:50,hi:80},
+      {name:'Phase 3 — MVP interface build',lo:30,hi:50},
+      {name:'Phase 4 — Testing + QA',lo:15,hi:25},
+      {name:'Phase 5 — Launch + 60-day support',lo:10,hi:20},
+    ]
+  },
+  healthcare: {
+    name: 'Healthcare AI Tool',
+    rate: 150, getRate: 4.5,
+    phases: [
+      {name:'Phase 0 — Clinical POC + HIPAA gap analysis',lo:20,hi:30},
+      {name:'Phase 1 — Data architecture + PHI de-identification',lo:40,hi:65},
+      {name:'Phase 2 — HIPAA compliance and risk architecture',lo:30,hi:50},
+      {name:'Phase 3 — Core AI/ML build (clinical RAG)',lo:100,hi:150},
+      {name:'Phase 4 — EHR integration (SMART on FHIR)',lo:40,hi:70},
+      {name:'Phase 5 — Clinician interface (WCAG 2.1 AA)',lo:50,hi:80},
+      {name:'Phase 6 — Security audit + penetration test',lo:20,hi:30},
+      {name:'Phase 7 — Clinical UAT (8 clinicians, 3 rounds)',lo:30,hi:50},
+      {name:'Phase 8 — Launch + clinical onboarding',lo:20,hi:30},
+      {name:'Phase 9 — 90-day post-launch clinical support',lo:20,hi:30},
+    ]
+  }
+};
+
+function loadPreset(key){
+  const p = PRESETS[key];
+  if(!p) return;
+  phases = p.phases.map(x=>({...x}));
+  document.getElementById('rate').value = p.rate;
+  document.getElementById('get-rate').value = p.getRate;
+  document.getElementById('proj-name').value = p.name;
+  renderPhases();
+  recalc();
+}
+
+function exportCSV(){
+  const rate = getRate(), getR = getGetRate();
+  const seOn = document.getElementById('se-toggle')?.checked;
+  const projName = document.getElementById('proj-name').value || 'AI Build';
+  let rows = [['Phase','Hours Low','Hours High','Fee Low','Fee High']];
+  phases.forEach(p => rows.push([p.name, p.lo, p.hi, Math.round(p.lo*rate), Math.round(p.hi*rate)]));
+  const psLo=phases.reduce((s,p)=>s+p.lo,0)*rate, psHi=phases.reduce((s,p)=>s+p.hi,0)*rate;
+  rows.push(['GET ('+(getR*100).toFixed(1)+'%)', '', '', Math.round(psLo*getR), Math.round(psHi*getR)]);
+  if(seOn) rows.push(['SE Tax (14.13%)', '', '', Math.round(psLo*0.1413), Math.round(psHi*0.1413)]);
+  const csv = rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = projName.replace(/[^a-z0-9]/gi,'_')+'_budget.csv';
+  a.click();
+}
+
+renderPhases();
+recalc();
+</script>
+
+<footer style="margin-top:40px;padding:18px 24px;border-top:1px solid #d4cabc;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+  <p style="font-family:'DM Mono',monospace;font-size:10px;color:#9b9187;letter-spacing:.04em">AI Build Budget Calculator · Aloha AI Consulting · Honolulu, HI</p>
+  <a href="mailto:collins.ra@northeastern.edu?subject=AI Build Budget Calculator — inquiry" style="font-family:'DM Mono',monospace;font-size:10px;color:#9b9187;text-decoration:none;border:1px solid #d4cabc;border-radius:20px;padding:4px 10px;letter-spacing:.04em">◆ Contact the Builder</a>
+</footer>
+</body>
+</html>
