@@ -772,8 +772,33 @@ renderPS(); renderMat(); renderY1(); renderMob(); recalcAll();
 
 <footer style="margin-top:40px;padding:18px 24px;border-top:1px solid #d4cabc;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
   <p style="font-family:'DM Mono',monospace;font-size:10px;color:#9b9187;letter-spacing:.04em">AI Build Budget Calculator · Aloha AI Consulting · Honolulu, HI</p>
-  <a href="mailto:collins.ra@northeastern.edu?subject=AI Build Budget Calculator — inquiry" style="font-family:'DM Mono',monospace;font-size:10px;color:#9b9187;text-decoration:none;border:1px solid #d4cabc;border-radius:20px;padding:4px 10px;letter-spacing:.04em">◆ Contact the Builder</a>
+  <button type="button" onclick="document.getElementById('ca-modal-ai-budget-calc').style.display='flex'" style="font-family:'DM Mono',monospace;font-size:10px;color:#9b9187;background:none;text-decoration:none;border:1px solid #d4cabc;border-radius:20px;padding:4px 10px;letter-spacing:.04em;cursor:pointer">◆ Contact the Builder</button>
 </footer>
+<!-- Contact the Architect -->
+<div id="ca-modal-ai-budget-calc" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:12px;padding:32px;max-width:480px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+    <h3 style="margin:0 0 16px;font-size:20px;color:#111">Contact the Architect</h3>
+    <form id="ca-form-ai-budget-calc">
+      <input name="name" placeholder="Name" required style="width:100%;margin-bottom:10px;padding:10px 12px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box;font-size:14px">
+      <input name="email" type="email" placeholder="Email" required style="width:100%;margin-bottom:10px;padding:10px 12px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box;font-size:14px">
+      <textarea name="message" placeholder="Message" rows="4" style="width:100%;margin-bottom:16px;padding:10px 12px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box;font-size:14px;resize:vertical"></textarea>
+      <button type="submit" style="background:#1a1a1a;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px">Send</button>
+      <button type="button" onclick="document.getElementById('ca-modal-ai-budget-calc').style.display='none'" style="margin-left:8px;background:none;border:1px solid #ccc;color:#333;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px">Cancel</button>
+    </form>
+    <script>
+    document.getElementById('ca-form-ai-budget-calc').addEventListener('submit',function(e){
+      e.preventDefault();
+      var f=e.target;
+      fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name:f.name.value,email:f.email.value,message:f.message.value,source:'ai-budget-calc-paid'})
+      }).then(function(){
+        f.reset();
+        document.getElementById('ca-modal-ai-budget-calc').style.display='none';
+      }).catch(function(){});
+    });
+    </script>
+  </div>
+</div>
 </body>
 </html>
 
