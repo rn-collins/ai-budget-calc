@@ -568,7 +568,7 @@ recalc();
     document.getElementById('ca-form-ai-budget-calc').addEventListener('submit',function(e){
       e.preventDefault();
       var f=e.target;
-      fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},
+      fetch('https://rn-api.vercel.app/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({name:f.name.value,email:f.email.value,message:f.message.value,source:'ai-budget-calc'})
       }).then(function(){
         f.reset();
