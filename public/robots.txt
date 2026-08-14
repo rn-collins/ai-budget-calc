@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://ai-budget-calc-red.vercel.app/sitemap.xml
