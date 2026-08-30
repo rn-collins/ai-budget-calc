@@ -262,7 +262,7 @@ build   ${money(t.buildLow)} - ${money(t.buildHigh)}`);
 /* ---- scenario library (this browser only) ----------------------------- */
 const LIB_KEY='aiCostWorkbenchLibraryV1';
 function libLoad(){try{const raw=JSON.parse(localStorage.getItem(LIB_KEY)||'[]');return Array.isArray(raw)?raw.slice(0,12):[]}catch{return[]}}
-function libSave(list){try{localStorage.setItem(LIB_KEY,JSON.stringify(list.slice(0,12)));return true}catch{setStatus('This browser would not store the scenario library.');return false}}
+function libSave(list){try{localStorage.setItem(LIB_KEY,JSON.stringify(list.slice(-12)));return true}catch{setStatus('This browser would not store the scenario library.');return false}}
 function renderLibrary(){
   const body=$('scenarioRows');if(!body)return;
   body.replaceChildren();
